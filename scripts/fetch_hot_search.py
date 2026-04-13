@@ -21,8 +21,13 @@ def fetch_weibo_hot():
     try:
         response = requests.get(url, params=params, timeout=10)
         data = response.json()
+        print(f"DEBUG: Weibo API response code={data.get('code')}")
         if data.get("code") == 200:
-            return data.get("result", [])
+            # API 返回结构是 {"result": {"list": [...]}}
+            result = data.get("result", {})
+            if isinstance(result, dict):
+                return result.get("list", [])
+            return result
         else:
             print(f"Weibo API error: {data.get('msg')}")
             return []
@@ -38,8 +43,13 @@ def fetch_douyin_hot():
     try:
         response = requests.get(url, params=params, timeout=10)
         data = response.json()
+        print(f"DEBUG: Douyin API response code={data.get('code')}")
         if data.get("code") == 200:
-            return data.get("result", [])
+            # API 返回结构是 {"result": {"list": [...]}}
+            result = data.get("result", {})
+            if isinstance(result, dict):
+                return result.get("list", [])
+            return result
         else:
             print(f"Douyin API error: {data.get('msg')}")
             return []
@@ -63,22 +73,22 @@ def main():
     # 转换为统一格式
     hot_list = []
 
-    for item in weibo_data:
+    for idx, item in enumerate(weibo_data, 1):
         hot_list.append({
             "platform": "微博",
-            "rank": item.get("rank", 0),
-            "topic": item.get("word", ""),
-            "hot_value": item.get("hotnum", 0),
+            "rank": item.get("rank") or idx,
+            "topic": item.get("hotword", item.get("word", "")),
+            "hot_value": int(str(item.get("hotwordnum", 0)).replace(" ", "")),
             "date": today,
             "source": "微博热搜"
         })
 
-    for item in douyin_data:
+    for idx, item in enumerate(douyin_data, 1):
         hot_list.append({
             "platform": "抖音",
-            "rank": item.get("rank", 0),
-            "topic": item.get("word", ""),
-            "hot_value": item.get("hotnum", 0),
+            "rank": item.get("rank") or idx,
+            "topic": item.get("hotword", item.get("word", "")),
+            "hot_value": int(str(item.get("hotwordnum", 0)).replace(" ", "")),
             "date": today,
             "source": "抖音热搜"
         })
