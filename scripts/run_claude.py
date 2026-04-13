@@ -114,6 +114,7 @@ def main():
 
         print(f"DEBUG: Response length = {len(response_text)} chars")
         print(f"DEBUG: Response ends with: ...{response_text[-200:]}")
+        print(f"DEBUG: Stop reason: {message.stop_reason if hasattr(message, 'stop_reason') else 'N/A'}")
 
         # 如果响应是完整的HTML，直接保存
         if "<html" in response_text.lower() or "<!doctype" in response_text.lower():
