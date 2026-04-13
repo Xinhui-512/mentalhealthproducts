@@ -8,41 +8,6 @@ import sys
 from datetime import datetime
 
 
-def create_gist(token, filename, content, description="热搜产品创意分析报告"):
-    """上传报告到 GitHub Gist 并返回链接"""
-    import urllib.request
-    import json
-
-    payload = {
-        "description": description,
-        "public": False,
-        "files": {
-            filename: {"content": content}
-        }
-    }
-
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        "https://api.github.com/gists",
-        data=data,
-        headers={
-            "Authorization": f"token {token}",
-            "Accept": "application/vnd.github.v3+json"
-        }
-    )
-
-    try:
-        with urllib.request.urlopen(req, timeout=15) as response:
-            result = json.loads(response.read().decode("utf-8"))
-            gist_url = result.get("html_url", "")
-            raw_url = result.get("files", {}).get(filename, {}).get("raw_url", "")
-            print(f"DEBUG: Gist created - {gist_url}")
-            return gist_url, raw_url
-    except Exception as e:
-        print(f"WARNING: Failed to create Gist: {e}")
-        return "", ""
-
-
 def send_feishu_webhook(webhook_url, content, status="success"):
     """发送消息到飞书"""
     import urllib.request
@@ -101,10 +66,57 @@ def send_feishu_webhook(webhook_url, content, status="success"):
         return False
 
 
+def extract_summary(content):
+    """从 HTML 内容中提取摘要信息"""
+    import re
+
+    summary = []
+
+    # 提取标题
+    title_match = re.search(r'<h1[^>]*>([^<]+)</h1>', content, re.IGNORECASE)
+    if title_match:
+        summary.append(f"📌 {title_match.group(1).strip()}")
+
+    # 提取统计信息
+    stats = []
+
+    # 热搜话题数量
+    topic_count = len(re.findall(r'<tr[^>]*class=["\']topic', content, re.IGNORECASE))
+    if topic_count == 0:
+        # 尝试其他方式统计
+        topic_count = content.count('topic') // 3  # 粗略估计
+
+    if topic_count > 0:
+        stats.append(f"话题数: {topic_count}")
+
+    # 提取评分信息
+    excellent = content.count('优秀') + content.count('gold') + content.count('#ffd700')
+    good = content.count('良好') + content.count('silver') + content.count('#c0c0c0')
+
+    if excellent > 0:
+        stats.append(f"优秀: {excellent}个")
+    if good > 0:
+        stats.append(f"良好: {good}个")
+
+    if stats:
+        summary.append(" | ".join(stats))
+
+    # 提取前几个话题标题
+    topics = re.findall(r'<td[^>]*>(\d+)</td>\s*<td[^>]*>([^<]+)</td>', content)
+    if topics:
+        top_topics = []
+        for i, (rank, title) in enumerate(topics[:5]):
+            top_topics.append(f"#{rank} {title[:20]}...")
+        if top_topics:
+            summary.append("\n🔥 热门话题:")
+            summary.append("\n".join(top_topics))
+
+    return "\n\n".join(summary) if summary else "报告已生成"
+
+
 def main():
     webhook_url = os.getenv("FEISHU_WEBHOOK_URL")
     report_path = os.getenv("REPORT_PATH", f"hot_search_report_{datetime.now().strftime('%y%m%d')}.html")
-    gh_token = os.getenv("GH_TOKEN")
     status = os.getenv("STATUS", "success")
 
     print(f"DEBUG: REPORT_PATH={report_path}")
@@ -114,38 +126,23 @@ def main():
         sys.exit(0)
 
     # 读取报告内容
-    gist_url = ""
     try:
         with open(report_path, "r", encoding="utf-8") as f:
             content = f.read()
             print(f"DEBUG: Report loaded, size={len(content)} bytes")
 
-        # 上传到 GitHub Gist
-        if gh_token and content:
-            gist_url, raw_url = create_gist(gh_token, os.path.basename(report_path), content)
-            if gist_url:
-                print(f"DEBUG: Report uploaded to Gist: {gist_url}")
+        # 提取摘要
+        summary = extract_summary(content)
+        print(f"DEBUG: Summary extracted, length={len(summary)}")
 
     except FileNotFoundError:
         print(f"WARNING: Report file not found: {report_path}")
-        content = ""
+        summary = "❌ 报告文件未找到，请检查 GitHub Actions 日志"
+    except Exception as e:
+        print(f"ERROR: Failed to read report: {e}")
+        summary = f"❌ 读取报告失败: {str(e)}"
 
-    # 构建飞书消息
-    summary = []
-    summary.append(f"📊 报告文件: `{os.path.basename(report_path)}`")
-    summary.append(f"📅 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-    if gist_url:
-        summary.append(f"✅ 报告已生成")
-        summary.append(f"\n[点击查看完整报告]({gist_url})")
-    elif content:
-        summary.append("📋 报告已生成（上传失败，请查看 GitHub Actions）")
-    else:
-        summary.append("❌ 报告生成失败，请检查日志")
-
-    content_md = "\n\n".join(summary)
-
-    send_feishu_webhook(webhook_url, content_md, status)
+    send_feishu_webhook(webhook_url, summary, status)
 
 
 if __name__ == "__main__":
