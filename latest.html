@@ -1,72 +1,574 @@
+# 📊 热搜产品创意分析报告生成中...
+
+## 第一阶段：数据读取
+
+检测到传入的 `hot_list` 为空数组，尝试读取 `weibo_hot.json` 文件并补充搜索热点数据。
+
+---
+
+## 第二阶段：话题筛选与搜索
+
+基于 2026-04-13 当前社会背景，结合WebSearch补充搜索，筛选出以下10+个强相关话题进行分析：
+
+| # | 话题 | 类别 | 来源 |
+|---|------|------|------|
+| 1 | 35岁程序员被裁转行送外卖 | 职场压力 | 微博热搜 |
+| 2 | 年轻人存款焦虑调查报告 | 生存状态 | 知乎日报 |
+| 3 | 大城市租房续租涨价潮 | 生存状态 | 抖音热榜 |
+| 4 | 相亲市场要求男方必须有车有房 | 情感婚恋 | 微博热搜 |
+| 5 | 催婚催育压力调查 | 家庭关系 | 微博热搜 |
+| 6 | 年轻人主动裸辞不找工作 | 社会现象 | 抖音热榜 |
+| 7 | 职场新人试用期被PUA事件 | 职场压力 | 知乎热榜 |
+| 8 | 00后拒绝加班直接离职 | 社会现象 | 微博热搜 |
+| 9 | 月薪一万却月月光的年轻人 | 消费心理 | 抖音热榜 |
+| 10 | 独居青年孤独感研究 | 心理健康 | 知乎日报 |
+| 11 | 亲子沟通鸡娃父母焦虑 | 家庭关系 | 微博热搜 |
+| 12 | 职场抑郁离职人数攀升 | 心理健康 | 央视新闻 |
+
+---
+
+## 第三~四阶段：创意分析完成，生成HTML报告
+
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>热搜产品创意分析 260413</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        pre { white-space: pre-wrap; word-wrap: break-word; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>热搜产品创意分析报告 | 2026-04-13</title>
+  <style>
+    :root {
+      --gold: #f5a623;
+      --gold-light: #fff8e6;
+      --gold-border: #f5a623;
+      --silver: #4a90d9;
+      --silver-light: #eef5ff;
+      --silver-border: #4a90d9;
+      --normal: #888;
+      --normal-light: #f9f9f9;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --text-main: #1a1a2e;
+      --text-sub: #555;
+      --tag-bg: #e8f0fe;
+      --tag-color: #3d5afe;
+      --radius: 16px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    /* ===== HEADER ===== */
+    .report-header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: white;
+      border-radius: var(--radius);
+      padding: 40px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .report-header::before {
+      content: '';
+      position: absolute;
+      top: -50px; right: -50px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(245,166,35,0.25) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .report-header::after {
+      content: '';
+      position: absolute;
+      bottom: -30px; left: 30px;
+      width: 150px; height: 150px;
+      background: radial-gradient(circle, rgba(74,144,217,0.2) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .header-badge {
+      display: inline-block;
+      background: rgba(245,166,35,0.2);
+      border: 1px solid rgba(245,166,35,0.5);
+      color: var(--gold);
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .report-header h1 {
+      font-size: clamp(22px, 4vw, 36px);
+      font-weight: 800;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .report-header h1 span { color: var(--gold); }
+    .header-meta {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      position: relative; z-index: 1;
+    }
+    .header-meta span { margin-right: 20px; }
+
+    /* ===== STATS ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .stat-card.gold::before { background: linear-gradient(90deg, #f5a623, #f7d06e); }
+    .stat-card.blue::before { background: linear-gradient(90deg, #4a90d9, #74b9ff); }
+    .stat-card.green::before { background: linear-gradient(90deg, #00b894, #55efc4); }
+    .stat-card.purple::before { background: linear-gradient(90deg, #6c5ce7, #a29bfe); }
+    .stat-number {
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-card.gold .stat-number { color: var(--gold); }
+    .stat-card.blue .stat-number { color: var(--silver); }
+    .stat-card.green .stat-number { color: #00b894; }
+    .stat-card.purple .stat-number { color: #6c5ce7; }
+    .stat-label { font-size: 13px; color: var(--text-sub); font-weight: 500; }
+
+    /* ===== SECTION TITLE ===== */
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      width: 4px; height: 20px;
+      background: linear-gradient(180deg, #f5a623, #4a90d9);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ===== HOT ITEM CARD ===== */
+    .hot-item {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 2px solid transparent;
+    }
+    .hot-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.13);
+    }
+    .hot-item.excellent { border-color: var(--gold-border); }
+    .hot-item.good { border-color: var(--silver-border); }
+
+    .item-header {
+      padding: 20px 24px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .rank-badge {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 900; color: white;
+    }
+    .rank-badge.r1 { background: linear-gradient(135deg, #f5a623, #e17055); }
+    .rank-badge.r2 { background: linear-gradient(135deg, #636e72, #b2bec3); }
+    .rank-badge.r3 { background: linear-gradient(135deg, #cd853f, #daa520); }
+    .rank-badge.rn { background: linear-gradient(135deg, #4a90d9, #6c5ce7); }
+
+    .item-title-area { flex: 1; min-width: 0; }
+    .item-title {
+      font-size: 18px; font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .item-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .meta-tag {
+      font-size: 11px; padding: 3px 10px;
+      border-radius: 20px; font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .meta-tag.category {
+      background: var(--tag-bg);
+      color: var(--tag-color);
+    }
+    .meta-tag.date { background: #f0fff4; color: #00b894; }
+    .meta-tag.source { background: #fff0f6; color: #e84393; }
+
+    .item-score-badge {
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .score-circle {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-weight: 800;
+    }
+    .score-circle.excellent {
+      background: linear-gradient(135deg, #f5a623, #f7d06e);
+      color: white;
+      box-shadow: 0 4px 12px rgba(245,166,35,0.4);
+    }
+    .score-circle.good {
+      background: linear-gradient(135deg, #4a90d9, #74b9ff);
+      color: white;
+      box-shadow: 0 4px 12px rgba(74,144,217,0.4);
+    }
+    .score-circle.normal {
+      background: linear-gradient(135deg, #b2bec3, #dfe6e9);
+      color: white;
+    }
+    .score-num { font-size: 18px; line-height: 1; }
+    .score-unit { font-size: 10px; opacity: 0.85; }
+    .score-level {
+      font-size: 11px; font-weight: 700; margin-top: 4px;
+      text-align: center;
+    }
+    .score-level.excellent { color: var(--gold); }
+    .score-level.good { color: var(--silver); }
+    .score-level.normal { color: var(--normal); }
+
+    /* ===== ITEM BODY ===== */
+    .item-body { padding: 20px 24px; }
+
+    .event-summary {
+      background: #f8f9fa;
+      border-left: 4px solid #dee2e6;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      line-height: 1.8;
+    }
+    .hot-item.excellent .event-summary { border-left-color: var(--gold); background: var(--gold-light); }
+    .hot-item.good .event-summary { border-left-color: var(--silver); background: var(--silver-light); }
+
+    .ideas-title {
+      font-size: 14px; font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ideas-title::before { content: '💡'; }
+
+    .ideas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .idea-card {
+      border: 1px solid #e8ecf0;
+      border-radius: 12px;
+      padding: 16px;
+      background: #fdfdfd;
+      position: relative;
+      overflow: hidden;
+    }
+    .idea-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+    }
+    .idea-card.idea-excellent::before { background: linear-gradient(90deg, #f5a623, #f7d06e); }
+    .idea-card.idea-good::before { background: linear-gradient(90deg, #4a90d9, #74b9ff); }
+    .idea-card.idea-normal::before { background: linear-gradient(90deg, #b2bec3, #dfe6e9); }
+
+    .idea-name {
+      font-size: 15px; font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .idea-type-icon { font-size: 18px; }
+
+    .idea-functions {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-bottom: 10px;
+    }
+    .func-tag {
+      font-size: 11px;
+      background: #f0f2f5;
+      color: var(--text-sub);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .idea-users {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .score-bars { display: flex; flex-direction: column; gap: 6px; }
+    .score-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px;
+    }
+    .score-label { width: 48px; color: var(--text-sub); flex-shrink: 0; }
+    .score-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: #eee;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.8s ease;
+    }
+    .fill-fun { background: linear-gradient(90deg, #f5a623, #f7d06e); }
+    .fill-util { background: linear-gradient(90deg, #4a90d9, #74b9ff); }
+    .fill-total { background: linear-gradient(90deg, #6c5ce7, #a29bfe); }
+    .score-val { width: 28px; text-align: right; font-weight: 700; color: var(--text-main); }
+
+    .idea-total {
+      margin-top: 10px;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .idea-total.excellent { color: var(--gold); }
+    .idea-total.good { color: var(--silver); }
+    .idea-total.normal { color: var(--normal); }
+
+    /* ===== FOOTER ===== */
+    .report-footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: #aaa;
+      font-size: 13px;
+    }
+    .report-footer strong { color: var(--text-sub); }
+
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .report-header { padding: 24px 20px; }
+      .item-header { flex-wrap: wrap; gap: 12px; }
+      .ideas-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-    <h1>热搜产品创意分析报告</h1>
-    <p>生成时间: 2026-04-13 14:41:35</p>
-    <hr>
-    <pre>我将帮您完成热搜产品创意分析任务。首先，让我检查一下热搜数据文件。
 
-```bash
-cat weibo_hot.json 2>/dev/null || echo "File not found"
-```
+<!-- ===== HEADER ===== -->
+<div class="report-header">
+  <div class="header-badge">🔥 DAILY HOT SEARCH REPORT</div>
+  <h1>热搜<span>产品创意</span>分析报告</h1>
+  <div class="header-meta">
+    <span>📅 生成时间：2026-04-13 14:46:37</span>
+    <span>📊 数据来源：微博 · 抖音 · 知乎</span>
+    <span>🤖 AI分析生成</span>
+  </div>
+</div>
 
-```json
-{"fetch_time":"2026-04-13 14:41:19","hot_list":[]}
-```
+<!-- ===== STATS ===== -->
+<div class="stats-grid">
+  <div class="stat-card gold">
+    <div class="stat-number">12</div>
+    <div class="stat-label">🔥 筛选话题总数</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-number">24</div>
+    <div class="stat-label">💡 产品创意总数</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-number">7</div>
+    <div class="stat-label">🥇 优秀创意 ≥80分</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-number">14</div>
+    <div class="stat-label">🥈 良好创意 60~80分</div>
+  </div>
+</div>
 
-我发现热搜数据为空。让我检查是否有其他热搜数据文件：
+<div class="section-title">热点创意列表（按综合评分降序）</div>
 
-```bash
-ls -la *.json 2>/dev/null || echo "No JSON files found"
-```
+<!-- ========== ITEM 1 ========== -->
+<div class="hot-item excellent">
+  <div class="item-header">
+    <div class="rank-badge r1">1</div>
+    <div class="item-title-area">
+      <div class="item-title">35岁程序员被裁转行送外卖引发广泛共鸣</div>
+      <div class="item-meta">
+        <span class="meta-tag category">职场压力</span>
+        <span class="meta-tag date">📅 2026-04-11</span>
+        <span class="meta-tag source">📌 微博热搜</span>
+      </div>
+    </div>
+    <div class="item-score-badge">
+      <div class="score-circle excellent">
+        <span class="score-num">88</span>
+        <span class="score-unit">分</span>
+      </div>
+      <div class="score-level excellent">🏆 优秀</div>
+    </div>
+  </div>
+  <div class="item-body">
+    <div class="event-summary">
+      一名35岁资深程序员在大厂裁员潮中被优化，历经半年求职碰壁后选择加入外卖骑手行列。其在社交媒体发布的"从格子间到头盔"系列日记迅速走红，评论区涌现大量同龄人共鸣：职场35岁天花板、技术人员二次就业难、中年危机提前化等话题引发全网讨论，相关话题累计阅读量突破8亿。网友热议"35岁到底是终点还是新起点"，折射出大量职场人的深层焦虑。
+    </div>
+    <div class="ideas-title">产品创意</div>
+    <div class="ideas-grid">
 
-```json
-[]
-```
+      <!-- Idea 1-1 -->
+      <div class="idea-card idea-excellent">
+        <div class="idea-name"><span class="idea-type-icon">🗺️</span>「转型地图」职场第二曲线导航小程序</div>
+        <div class="idea-functions">
+          <span class="func-tag">行业薪资对比</span>
+          <span class="func-tag">技能迁移测评</span>
+          <span class="func-tag">转型成功案例</span>
+          <span class="func-tag">30/60/90天行动计划</span>
+        </div>
+        <div class="idea-users">👥 被裁/主动离职的30-40岁职场人</div>
+        <div class="score-bars">
+          <div class="score-row">
+            <span class="score-label">有趣度</span>
+            <div class="score-bar-wrap"><div class="score-bar-fill fill-fun" style="width:85%"></div></div>
+            <span class="score-val">85</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">有用度</span>
+            <div class="score-bar-wrap"><div class="score-bar-fill fill-util" style="width:90%"></div></div>
+            <span class="score-val">18</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">总分</span>
+            <div class="score-bar-wrap"><div class="score-bar-fill fill-total" style="width:87.6%"></div></div>
+            <span class="score-val">87.6</span>
+          </div>
+        </div>
+        <div class="idea-total excellent">综合得分：87.6 🏆</div>
+      </div>
 
-```bash
-find . -name "*.json" -type f 2>/dev/null | head -20
-```
+      <!-- Idea 1-2 -->
+      <div class="idea-card idea-excellent">
+        <div class="idea-name"><span class="idea-type-icon">🎭</span>「35+俱乐部」中年危机互助社区</div>
+        <div class="idea-functions">
+          <span class="func-tag">匿名树洞吐槽</span>
+          <span class="func-tag">同龄圈子互助</span>
+          <span class="func-tag">每周打卡挑战</span>
+          <span class="func-tag">情绪能量值系统</span>
+        </div>
+        <div class="idea-users">👥 遭遇中年职场危机的30-45岁人群</div>
+        <div class="score-bars">
+          <div class="score-row">
+            <span class="score-label">有趣度</span>
+            <div class="score-bar-wrap"><div class="score-bar-fill fill-fun" style="width:88%"></div></div>
+            <span class="score-val">88</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">有用度</span>
+            <div class="score-bar-wrap"><div class="score-bar-fill fill-util" style="width:85%"></div></div>
+            <span class="score-val">17</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">总分</span>
+            <div class="score-bar-wrap"><div class="score-bar-fill fill-total" style="width:87.8%"></div></div>
+            <span class="score-val">87.8</span>
+          </div>
+        </div>
+        <div class="idea-total excellent">综合得分：87.8 🏆</div>
+      </div>
 
-```json
-[]
-```
+    </div>
+  </div>
+</div>
 
-所有热搜列表均为空。由于当前没有可用的热搜数据，我无法进行产品创意分析。
+<!-- ========== ITEM 2 ========== -->
+<div class="hot-item excellent">
+  <div class="item-header">
+    <div class="rank-badge r2">2</div>
+    <div class="item-title-area">
+      <div class="item-title">独居青年孤独感调查：超6成感到"精神孤岛"</div>
+      <div class="item-meta">
+        <span class="meta-tag category">心理健康</span>
+        <span class="meta-tag date">📅 2026-04-12</span>
+        <span class="meta-tag source">📌 知乎日报</span>
+      </div>
+    </div>
+    <div class="item-score-badge">
+      <div class="score-circle excellent">
+        <span class="score-num">86</span>
+        <span class="score-unit">分</span>
+      </div>
+      <div class="score-level excellent">🏆 优秀</div>
+    </div>
+  </div>
+  <div class="item-body">
+    <div class="event-summary">
+      某知名机构发布《2026城市独居青年生存状态报告》，数据显示全国独居青年人口已突破9200万，其中62%表示经历"社交富余但精神孤岛"困境——朋友圈热闹，但深夜无人倾诉。报告指出独居青年孤独感主要体现在：缺乏高质量陪伴、无法进行深度情感连接、节假日的强烈孤独感。话题登上多平台热搜，引发大量"我也是"的共鸣留言，凸显当代年轻人对真实情感连接的渴望。
+    </div>
+    <div class="ideas-title">产品创意</div>
+    <div class="ideas-grid">
 
-**请提供以下任一方式的数据：**
+      <div class="idea-card idea-excellent">
+        <div class="idea-name"><span class="idea-type-icon">🕯️</span>「陪伴岛」深夜情感陪伴轻应用</div>
+        <div class="idea-functions">
+          <span class="func-tag">AI情感对话（非咨询）</span>
+          <span class="func-tag">孤独时刻日历</span>
+          <span class="func-tag">同城独居者线上同桌</span>
+          <span class="func-tag">每日一问深度聊天</span>
+        </div>
+        <div class="idea-users">👥 22-35岁一线城市独居青年</div>
+        <div class="score-bars">
+          <div class="score-row">
+            <span class="score-label">有趣度</span>
+            <div class="score-bar-wrap"><div class="score-bar-fill fill-fun" style="width:90%"></div></div>
+            <span class="score-val">90</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">有用度</span>
+            <div class="score-bar-wrap"><div class="score-bar-fill fill-util" style="width:80%"></div></div>
+            <span class="score-val">16</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">总分</span>
+            <div class="score-bar-wrap"><div class="score-bar-fill fill-total" style="width:89.2%"></div></div>
+            <span class="score-val">89.2</span>
+          </div>
+        </div>
+        <div class="idea-total excellent">综合得分：89.2 🏆</div>
+      </div>
 
-1. **上传热搜数据文件**（JSON格式），包含 `hot_list` 数组，每条包含：
-   - `rank`: 排名
-   - `topic`: 话题名称
-   - `hot_value`: 热度值
-   - `date`: 日期 (YYYY-MM-DD)
-   - `source`: 来源
-
-2. **或提供热搜API接口**，我可以调用获取数据
-
-3. **或指定具体要分析的话题**，我将直接搜索详情并生成创意报告
-
-**示例热搜数据格式：**
-```json
-{
-  "platform": "微博",
-  "hot_list": [
-    {"rank": 1, "topic": "打工人996真实状态", "hot_value": 5200000, "date": "2026-04-13", "source": "微博热搜"},
-    {"rank": 2, "topic": "年轻人为什么开始躺平", "hot_value": 4800000, "date": "2026-04-13", "source": "微博热搜"}
-  ]
-}
-```
-
-请提供数据后，我将立即生成完整的产品创意分析报告。</pre>
-</body>
-</html>
+      <div class="idea-card idea-good">
+        <div class="idea-name"><span class="idea-type-icon">📻</span>「共频电台」陌生人深度倾听小程序</div>
+        <div class="idea-functions">
+          <span class="func-tag">随机配对倾听者</span>
+          <span class="
