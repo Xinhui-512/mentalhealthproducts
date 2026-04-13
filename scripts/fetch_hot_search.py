@@ -74,21 +74,26 @@ def main():
     hot_list = []
 
     for idx, item in enumerate(weibo_data, 1):
+        hot_value_str = str(item.get("hotwordnum", "0")).replace(" ", "")
+        # 提取数字部分
+        hot_value = int("".join(filter(str.isdigit, hot_value_str))) if any(c.isdigit() for c in hot_value_str) else 0
         hot_list.append({
             "platform": "微博",
-            "rank": item.get("rank") or idx,
+            "rank": idx,
             "topic": item.get("hotword", item.get("word", "")),
-            "hot_value": int(str(item.get("hotwordnum", 0)).replace(" ", "")),
+            "hot_value": hot_value,
             "date": today,
             "source": "微博热搜"
         })
 
     for idx, item in enumerate(douyin_data, 1):
+        hot_value_str = str(item.get("hotwordnum", "0")).replace(" ", "")
+        hot_value = int("".join(filter(str.isdigit, hot_value_str))) if any(c.isdigit() for c in hot_value_str) else 0
         hot_list.append({
             "platform": "抖音",
-            "rank": item.get("rank") or idx,
+            "rank": idx,
             "topic": item.get("hotword", item.get("word", "")),
-            "hot_value": int(str(item.get("hotwordnum", 0)).replace(" ", "")),
+            "hot_value": hot_value,
             "date": today,
             "source": "抖音热搜"
         })
