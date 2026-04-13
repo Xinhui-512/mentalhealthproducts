@@ -23,13 +23,17 @@ jobs:
         run: pip install anthropic requests
 
       - name: Fetch hot search data
-        run: python scripts/fetch_hot_search.py
+        run: |
+          unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+          python scripts/fetch_hot_search.py
         env:
           WEIBO_API_KEY: ${{ secrets.WEIBO_API_KEY }}
           DOUYIN_API_KEY: ${{ secrets.DOUYIN_API_KEY }}
 
       - name: Run AI analysis
-        run: python scripts/run_claude.py
+        run: |
+          unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+          python scripts/run_claude.py
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           MINIMAX_API_URL: ${{ secrets.MINIMAX_API_URL }}

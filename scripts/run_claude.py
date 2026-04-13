@@ -78,6 +78,9 @@ def build_prompt():
 
 
 def main():
+    if not MINIMAX_API_KEY:
+        raise ValueError("MINIMAX_API_KEY environment variable is not set. Please configure it in GitHub Secrets.")
+
     client = anthropic.Anthropic(
         api_key=MINIMAX_API_KEY,
         base_url=MINIMAX_API_URL
@@ -99,7 +102,15 @@ def main():
         )
 
         # 解析响应并保存HTML报告
-        response_text = message.content[0].text
+        # 处理可能的 ThinkingBlock
+        response_text = None
+        for block in message.content:
+            if hasattr(block, 'text') and block.text:
+                response_text = block.text
+                break
+
+        if response_text is None:
+            raise ValueError("No text content found in response")
 
         # 如果响应是完整的HTML，直接保存
         if "<html" in response_text.lower() or "<!doctype" in response_text.lower():
