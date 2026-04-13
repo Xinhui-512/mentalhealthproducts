@@ -95,7 +95,7 @@ def main():
     try:
         message = client.messages.create(
             model="MiniMax-M2.7",
-            max_tokens=8192,
+            max_tokens=16384,
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -111,6 +111,9 @@ def main():
 
         if response_text is None:
             raise ValueError("No text content found in response")
+
+        print(f"DEBUG: Response length = {len(response_text)} chars")
+        print(f"DEBUG: Response ends with: ...{response_text[-200:]}")
 
         # 如果响应是完整的HTML，直接保存
         if "<html" in response_text.lower() or "<!doctype" in response_text.lower():
