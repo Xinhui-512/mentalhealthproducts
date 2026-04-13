@@ -51,6 +51,12 @@ def fetch_douyin_hot():
 def main():
     today = datetime.now().strftime("%Y-%m-%d")
 
+    # Debug: 检查 API key 是否配置
+    if not WEIBO_API_KEY:
+        print("ERROR: WEIBO_API_KEY is not set")
+    if not DOUYIN_API_KEY:
+        print("ERROR: DOUYIN_API_KEY is not set")
+
     weibo_data = fetch_weibo_hot()
     douyin_data = fetch_douyin_hot()
 
