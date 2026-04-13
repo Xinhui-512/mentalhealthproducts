@@ -38,11 +38,43 @@ jobs:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           MINIMAX_API_URL: ${{ secrets.MINIMAX_API_URL }}
 
+      - name: Deploy to GitHub Pages
+        if: success() || failure()
+        run: |
+          REPORT_FILE="hot_search_report_$(date +%y%m%d).html"
+          cp "$REPORT_FILE" "latest.html"
+
+          # Create a simple index
+          cat > index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <title>热搜报告</title>
+              <meta http-equiv="refresh" content="0;url=latest.html">
+          </head>
+          <body>
+              <p>正在跳转到最新报告...</p>
+              <p><a href="latest.html">如果没有自动跳转，点击这里查看最新报告</a></p>
+          </body>
+          </html>
+          EOF
+        shell: bash
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+
       - name: Send to Feishu
         if: success() || failure()
         run: |
           REPORT_FILE="hot_search_report_$(date +%y%m%d).html"
+          REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/$REPORT_FILE"
           echo "DEBUG: REPORT_PATH=$REPORT_FILE"
-          FEISHU_WEBHOOK_URL="$FEISHU_WEBHOOK_URL" STATUS="${{ job.status }}" REPORT_PATH="$REPORT_FILE" python scripts/send_feishu.py
+          echo "DEBUG: REPORT_URL=$REPORT_URL"
+          FEISHU_WEBHOOK_URL="$FEISHU_WEBHOOK_URL" STATUS="${{ job.status }}" REPORT_PATH="$REPORT_FILE" REPORT_URL="$REPORT_URL" python scripts/send_feishu.py
         env:
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}

@@ -114,9 +114,11 @@ def extract_summary(content):
 def main():
     webhook_url = os.getenv("FEISHU_WEBHOOK_URL")
     report_path = os.getenv("REPORT_PATH", f"hot_search_report_{datetime.now().strftime('%y%m%d')}.html")
+    report_url = os.getenv("REPORT_URL", "")
     status = os.getenv("STATUS", "success")
 
     print(f"DEBUG: REPORT_PATH={report_path}")
+    print(f"DEBUG: REPORT_URL={report_url}")
 
     if not webhook_url:
         print("FEISHU_WEBHOOK_URL not set, skipping notification")
@@ -139,6 +141,10 @@ def main():
     except Exception as e:
         print(f"ERROR: Failed to read report: {e}")
         summary = f"❌ 读取报告失败: {str(e)}"
+
+    # 如果有URL，添加链接
+    if report_url:
+        summary += f"\n\n[👉 点击查看完整报告]({report_url})"
 
     send_feishu_webhook(webhook_url, summary, status)
 
