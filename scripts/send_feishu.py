@@ -71,6 +71,8 @@ def main():
     report_path = os.getenv("REPORT_PATH", f"hot_search_report_{datetime.now().strftime('%y%m%d')}.html")
     status = os.getenv("STATUS", "success")
 
+    print(f"DEBUG: REPORT_PATH={report_path}")
+
     if not webhook_url:
         print("FEISHU_WEBHOOK_URL not set, skipping notification")
         sys.exit(0)
@@ -79,12 +81,14 @@ def main():
     try:
         with open(report_path, "r", encoding="utf-8") as f:
             content = f.read()
+            print(f"DEBUG: Report loaded, size={len(content)} bytes")
     except FileNotFoundError:
-        content = "报告文件未找到"
+        content = ""
+        print(f"WARNING: Report file not found: {report_path}")
 
     # 提取摘要信息
     summary = []
-    if "hot_topics" in content or "话题" in content:
+    if content and ("hot_topics" in content or "话题" in content):
         summary.append(f"📊 报告文件: `{report_path}`")
         summary.append(f"📅 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
