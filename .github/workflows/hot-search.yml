@@ -25,7 +25,8 @@ jobs:
       - name: Fetch hot search data
         run: python scripts/fetch_hot_search.py
         env:
-          TIANAPI_KEY: ${{ secrets.TIANAPI_KEY }}
+          WEIBO_API_KEY: ${{ secrets.WEIBO_API_KEY }}
+          DOUYIN_API_KEY: ${{ secrets.DOUYIN_API_KEY }}
 
       - name: Run AI analysis
         run: python scripts/run_claude.py

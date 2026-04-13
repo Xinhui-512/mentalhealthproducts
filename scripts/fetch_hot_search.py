@@ -9,14 +9,15 @@ import os
 import requests
 from datetime import datetime
 
-# 天聚数行 API Key
-TIANAPI_KEY = os.getenv("TIANAPI_KEY")
+# 天聚数行 API Keys
+WEIBO_API_KEY = os.getenv("WEIBO_API_KEY")
+DOUYIN_API_KEY = os.getenv("DOUYIN_API_KEY")
 
 
 def fetch_weibo_hot():
     """获取微博热搜"""
     url = "https://apis.tianapi.com/weibohot/index"
-    params = {"key": TIANAPI_KEY}
+    params = {"key": WEIBO_API_KEY}
     try:
         response = requests.get(url, params=params, timeout=10)
         data = response.json()
@@ -33,7 +34,7 @@ def fetch_weibo_hot():
 def fetch_douyin_hot():
     """获取抖音热搜"""
     url = "https://apis.tianapi.com/douyinhot/index"
-    params = {"key": TIANAPI_KEY}
+    params = {"key": DOUYIN_API_KEY}
     try:
         response = requests.get(url, params=params, timeout=10)
         data = response.json()
