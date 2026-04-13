@@ -1,0 +1,42 @@
+name: Hot Search Product Ideas Analysis
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 每天北京时间 10:00 执行
+  workflow_dispatch:       # 支持手动触发
+
+jobs:
+  hot-search-analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install anthropic requests
+
+      - name: Fetch hot search data
+        run: python scripts/fetch_hot_search.py
+        env:
+          TIANAPI_KEY: ${{ secrets.TIANAPI_KEY }}
+
+      - name: Run AI analysis
+        run: python scripts/run_claude.py
+        env:
+          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          MINIMAX_API_URL: ${{ secrets.MINIMAX_API_URL }}
+
+      - name: Send to Feishu
+        if: success() || failure()
+        run: python scripts/send_feishu.py
+        env:
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          REPORT_PATH: hot_search_report_$(date +\%y\%m\%d).html
+          STATUS: ${{ job.status }}

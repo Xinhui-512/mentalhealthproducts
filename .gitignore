@@ -11,3 +11,8 @@ Thumbs.db
 .claude/
 How+to+create+Skills+for+Claude+steps+and+examples++Claude.md
 hot_search_report_2026-04-11.html
+hot_search_report_*.html
+
+# GitHub Secrets (本地配置)
+secrets/
+*.local.yaml
