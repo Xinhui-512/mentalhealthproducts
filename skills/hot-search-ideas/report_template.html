@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>热搜产品创意分析报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        .meta {
+            color: #666;
+            font-size: 14px;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .excellent { background: linear-gradient(135deg, #ffd700, #ffb347); }
+        .good { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); }
+        .normal { background: #e0e0e0; }
+
+        .hot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .hot-item {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+        .hot-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        .hot-item.excellent {
+            border: 3px solid #ffd700;
+        }
+        .hot-item.good {
+            border: 2px solid #c0c0c0;
+        }
+        .hot-header {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .rank {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+        }
+        .rank-1 { background: linear-gradient(135deg, #ffd700, #ff8c00); }
+        .rank-2 { background: linear-gradient(135deg, #c0c0c0, #808080); }
+        .rank-3 { background: linear-gradient(135deg, #cd7f32, #8b4513); }
+        .rank-default { background: linear-gradient(135deg, #667eea, #764ba2); }
+
+        .topic-info {
+            flex: 1;
+        }
+        .topic-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .topic-meta {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .score-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .score-excellent {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: white;
+        }
+        .score-good {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .score-normal {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .hot-content {
+            padding: 24px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section:last-child {
+            margin-bottom: 0;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title::before {
+            content: "";
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        .event-timeline {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #444;
+        }
+
+        .ideas-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .idea-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .idea-card.excellent {
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            border-left-color: #ffd700;
+        }
+        .idea-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .idea-functions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .function-tag {
+            background: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #667eea;
+            border: 1px solid #667eea;
+        }
+        .idea-users {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        .idea-users strong {
+            color: #333;
+        }
+        .score-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .score-item {
+            flex: 1;
+        }
+        .score-label {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+        .score-progress {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .score-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        .fun-fill { background: linear-gradient(90deg, #ff6b6b, #ffa500); }
+        .utility-fill { background: linear-gradient(90deg, #4ecdc4, #44a08d); }
+        .total-fill { background: linear-gradient(90deg, #667eea, #764ba2); }
+        .score-num {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            min-width: 40px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: white;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .stats { gap: 20px; }
+            .hot-header { flex-wrap: wrap; }
+            .score-bar { flex-direction: column; align-items: stretch; }
+            .score-item { margin-bottom: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>热搜产品创意分析报告</h1>
+            <p class="meta">生成时间：{{generate_time}} | 平台：{{platform}}</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{total_topics}}</div>
+                    <div class="stat-label">分析话题</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{excellent_count}}</div>
+                    <div class="stat-label">优秀创意</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{good_count}}</div>
+                    <div class="stat-label">良好创意</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{total_ideas}}</div>
+                    <div class="stat-label">产品创意总数</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="hot-list">
+            {{#each hot_topics}}
+            <div class="hot-item {{rating_class}}">
+                <div class="hot-header">
+                    <div class="rank {{rank_class}}">{{rank}}</div>
+                    <div class="topic-info">
+                        <div class="topic-name">{{topic_name}}</div>
+                        <div class="topic-meta">热度值：{{hot_value}} | 来源：{{source}}</div>
+                    </div>
+                    <div class="score-badge {{score_class}}">{{top_score}}分</div>
+                </div>
+                <div class="hot-content">
+                    <div class="section">
+                        <div class="section-title">事件脉络</div>
+                        <div class="event-timeline">{{event_summary}}</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">产品创意 ({{ideas_count}}个)</div>
+                        <div class="ideas-list">
+                            {{#each product_ideas}}
+                            <div class="idea-card {{idea_rating_class}}">
+                                <div class="idea-name">{{name}}</div>
+                                <div class="idea-functions">
+                                    {{#each core_functions}}
+                                    <span class="function-tag">{{this}}</span>
+                                    {{/each}}
+                                </div>
+                                <div class="idea-users"><strong>目标用户：</strong>{{target_users}}</div>
+                                <div class="score-bar">
+                                    <div class="score-item">
+                                        <div class="score-label">有趣度</div>
+                                        <div class="score-progress">
+                                            <div class="score-fill fun-fill" style="width: {{fun_score}}%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="score-item">
+                                        <div class="score-label">有用度</div>
+                                        <div class="score-progress">
+                                            <div class="score-fill utility-fill" style="width: {{utility_score}}%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="score-num">{{total_score}}分</div>
+                                </div>
+                            </div>
+                            {{/each}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+
+        <footer>
+            <p>由 Claude AI 技能自动生成 | 仅供创意参考</p>
+        </footer>
+    </div>
+</body>
+</html>
