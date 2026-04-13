@@ -77,39 +77,36 @@ def extract_summary(content):
     if title_match:
         summary.append(f"📌 {title_match.group(1).strip()}")
 
-    # 提取统计信息
-    stats = []
-
-    # 热搜话题数量
-    topic_count = len(re.findall(r'<tr[^>]*class=["\']topic', content, re.IGNORECASE))
-    if topic_count == 0:
-        # 尝试其他方式统计
-        topic_count = content.count('topic') // 3  # 粗略估计
-
-    if topic_count > 0:
-        stats.append(f"话题数: {topic_count}")
-
-    # 提取评分信息
-    excellent = content.count('优秀') + content.count('gold') + content.count('#ffd700')
-    good = content.count('良好') + content.count('silver') + content.count('#c0c0c0')
-
-    if excellent > 0:
-        stats.append(f"优秀: {excellent}个")
-    if good > 0:
-        stats.append(f"良好: {good}个")
-
+    # 提取统计信息 - 查找 stat-card 中的 number 和 label
+    stats = re.findall(r'<div class="stat-card[^"]*">\s*<div class="number">(\d+)</div>\s*<div class="label">([^<]+)</div>', content)
     if stats:
-        summary.append(" | ".join(stats))
+        stats_text = []
+        for num, label in stats:
+            stats_text.append(f"{label}: {num}")
+        summary.append(" | ".join(stats_text))
+    else:
+        # 备用：直接统计 topic-card 和 idea-card 数量
+        topic_count = len(re.findall(r'<div class="topic-card"', content))
+        idea_count = len(re.findall(r'<div class="idea-card"', content))
+        if topic_count > 0:
+            summary.append(f"话题数: {topic_count} | 创意数: {idea_count}")
 
-    # 提取前几个话题标题
-    topics = re.findall(r'<td[^>]*>(\d+)</td>\s*<td[^>]*>([^<]+)</td>', content)
-    if topics:
-        top_topics = []
-        for i, (rank, title) in enumerate(topics[:5]):
-            top_topics.append(f"#{rank} {title[:20]}...")
-        if top_topics:
-            summary.append("\n🔥 热门话题:")
-            summary.append("\n".join(top_topics))
+    # 提取优秀和良好计数
+    excellent_match = re.search(r'优秀创意.*?(\d+)', content)
+    good_match = re.search(r'良好创意.*?(\d+)', content)
+    if excellent_match:
+        summary.append(f"✅ 优秀: {excellent_match.group(1)}个")
+    if good_match:
+        summary.append(f"👍 良好: {good_match.group(1)}个")
+
+    # 提取前5个话题标题
+    topic_titles = re.findall(r'<div class="topic-title">([^<]+)</div>', content)
+    if topic_titles:
+        summary.append("\n🔥 热门话题:")
+        for i, title in enumerate(topic_titles[:5], 1):
+            # 截断过长标题
+            display_title = title[:25] + "..." if len(title) > 25 else title
+            summary.append(f"{i}. {display_title}")
 
     return "\n\n".join(summary) if summary else "报告已生成"
 
@@ -134,6 +131,7 @@ def main():
         # 提取摘要
         summary = extract_summary(content)
         print(f"DEBUG: Summary extracted, length={len(summary)}")
+        print(f"DEBUG: Summary preview: {summary[:200]}...")
 
     except FileNotFoundError:
         print(f"WARNING: Report file not found: {report_path}")
