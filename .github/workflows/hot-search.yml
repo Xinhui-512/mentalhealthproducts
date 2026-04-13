@@ -41,21 +41,22 @@ jobs:
       - name: Deploy to GitHub Pages
         if: success() || failure()
         run: |
+          mkdir -p public
           REPORT_FILE="hot_search_report_$(date +%y%m%d).html"
-          cp "$REPORT_FILE" "latest.html"
+          cp "$REPORT_FILE" public/
+          cp "$REPORT_FILE" public/latest.html
 
-          # Create a simple index
-          cat > index.html << 'EOF'
+          # Create index page
+          cat > public/index.html << 'EOF'
           <!DOCTYPE html>
           <html>
           <head>
               <meta charset="UTF-8">
               <title>热搜报告</title>
-              <meta http-equiv="refresh" content="0;url=latest.html">
           </head>
           <body>
-              <p>正在跳转到最新报告...</p>
-              <p><a href="latest.html">如果没有自动跳转，点击这里查看最新报告</a></p>
+              <h1>热搜产品创意分析报告</h1>
+              <p><a href="latest.html">点击查看最新报告</a></p>
           </body>
           </html>
           EOF
@@ -65,7 +66,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: public
           publish_branch: gh-pages
 
       - name: Send to Feishu
