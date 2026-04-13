@@ -43,5 +43,5 @@ jobs:
         run: python scripts/send_feishu.py
         env:
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
-          REPORT_PATH: hot_search_report_$(date +\%y\%m\%d).html
+          REPORT_PATH: hot_search_report_$(date +%y%m%d).html
           STATUS: ${{ job.status }}
