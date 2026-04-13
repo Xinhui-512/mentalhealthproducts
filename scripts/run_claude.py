@@ -118,7 +118,13 @@ def main():
                 f.write(response_text)
             print(f"Report saved to {output_file}")
         else:
-            # 否则包装成HTML
+            # 将 Markdown 转换为 HTML
+            import markdown
+            html_body = markdown.markdown(
+                response_text,
+                extensions=['tables', 'fenced_code']
+            )
+
             html_content = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -126,15 +132,22 @@ def main():
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>热搜产品创意分析 {date_str}</title>
     <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }}
-        pre {{ white-space: pre-wrap; word-wrap: break-word; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; line-height: 1.6; }}
+        h1 {{ color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px; }}
+        h2 {{ color: #555; margin-top: 30px; }}
+        table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
+        th, td {{ border: 1px solid #ddd; padding: 12px; text-align: left; }}
+        th {{ background-color: #667eea; color: white; }}
+        tr:nth-child(even) {{ background-color: #f9f9f9; }}
+        code {{ background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; }}
+        pre {{ background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }}
     </style>
 </head>
 <body>
     <h1>热搜产品创意分析报告</h1>
     <p>生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
     <hr>
-    <pre>{response_text}</pre>
+    {html_body}
 </body>
 </html>"""
             with open(output_file, "w", encoding="utf-8") as f:
