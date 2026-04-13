@@ -122,121 +122,138 @@ def main():
             html_content = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>热搜产品创意分析报告</title>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-        }}
-        .container {{
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            overflow: hidden;
-        }}
-        header {{
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }}
-        header h1 {{
-            font-size: 2em;
-            margin-bottom: 10px;
-        }}
-        header .meta {{
-            opacity: 0.9;
-            font-size: 0.95em;
-        }}
-        .content {{
-            padding: 40px;
-        }}
-        h2 {{
-            color: #667eea;
-            font-size: 1.4em;
-            margin: 30px 0 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
-        }}
-        h2:first-child {{
-            margin-top: 0;
-        }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 0.95em;
-        }}
-        th, td {{
-            padding: 16px 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }}
-        th {{
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            font-weight: 600;
-        }}
-        tr:hover {{
-            background-color: #f8f6ff;
-        }}
-        .score {{
-            font-weight: bold;
-            color: #667eea;
-        }}
-        .idea {{
-            background: #f8f6ff;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 15px 0;
-            border-left: 4px solid #667eea;
-        }}
-        .idea h4 {{
-            color: #333;
-            margin-bottom: 10px;
-        }}
-        .idea p {{
-            color: #666;
-            line-height: 1.6;
-        }}
-        code {{
-            background: #f4f4f4;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: Monaco, monospace;
-        }}
-        pre {{
-            background: #f4f4f4;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-        }}
-        ul {{
-            padding-left: 20px;
-        }}
-        li {{
-            margin: 8px 0;
-            color: #555;
-        }}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>热搜产品创意分析报告</title>
+<style>
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f0f1a;
+    color: #e8e8f0;
+    line-height: 1.6;
+    padding: 24px 16px;
+  }}
+  .container {{ max-width: 860px; margin: 0 auto; }}
+
+  .header {{
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 16px;
+    margin-bottom: 28px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }}
+  .header h1 {{
+    font-size: 26px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #f5a623, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }}
+  .header .meta {{ font-size: 13px; color: #888; margin-top: 6px; }}
+
+  .stats-bar {{ display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }}
+  .stat-card {{
+    flex: 1; min-width: 120px; background: #1a1a2e;
+    border-radius: 10px; padding: 16px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.05);
+  }}
+  .stat-card .num {{ font-size: 28px; font-weight: 700; color: #f5a623; }}
+  .stat-card .label {{ font-size: 12px; color: #888; margin-top: 4px; }}
+
+  .legend {{ display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; font-size: 13px; color: #aaa; }}
+  .legend span {{ display: flex; align-items: center; gap: 6px; }}
+  .dot {{ width: 10px; height: 10px; border-radius: 50%; display: inline-block; }}
+  .dot.gold {{ background: #f5a623; }}
+  .dot.silver {{ background: #94a3b8; }}
+  .dot.normal {{ background: #555; }}
+
+  .hot-item {{
+    background: #1a1a2e; border-radius: 12px; margin-bottom: 20px;
+    overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+  }}
+  .hot-item.gold {{ border-color: rgba(245,166,35,0.3); box-shadow: 0 0 20px rgba(245,166,35,0.06); }}
+  .hot-item.silver {{ border-color: rgba(148,163,184,0.2); }}
+
+  .item-header {{ display: flex; align-items: center; padding: 16px 20px; gap: 14px; cursor: pointer; }}
+  .rank-badge {{
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; flex-shrink: 0;
+    background: #252540; color: #ccc;
+  }}
+  .rank-badge.top3 {{ background: linear-gradient(135deg, #f5a623, #ff6b6b); color: #fff; }}
+  .topic-info {{ flex: 1; }}
+  .topic-name {{ font-size: 16px; font-weight: 600; color: #f0f0f5; margin-bottom: 4px; }}
+  .topic-meta {{ font-size: 12px; color: #777; }}
+  .topic-meta .source {{ color: #f5a623; }}
+  .expand-icon {{ font-size: 18px; color: #555; transition: transform 0.2s; }}
+  .expand-icon.open {{ transform: rotate(180deg); }}
+  .item-body {{ display: none; padding: 0 20px 20px; }}
+  .item-body.show {{ display: block; }}
+
+  .event-summary {{
+    background: #16162a; border-radius: 8px; padding: 14px 16px;
+    font-size: 14px; color: #c0c0d0; line-height: 1.7; margin-bottom: 16px;
+    border-left: 3px solid #f5a623;
+  }}
+
+  .ideas-section h3 {{
+    font-size: 13px; color: #888; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 12px;
+  }}
+  .idea-card {{
+    background: #1e1e38; border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.04);
+  }}
+  .idea-name {{ font-size: 15px; font-weight: 600; color: #e0e0f0; margin-bottom: 6px; }}
+  .idea-funcs {{ font-size: 13px; color: #aaa; margin-bottom: 10px; }}
+  .idea-funcs strong {{ color: #f5a623; margin-right: 4px; }}
+  .idea-target {{ font-size: 12px; color: #777; margin-bottom: 10px; }}
+  .score-row {{ display: flex; align-items: center; gap: 10px; font-size: 12px; }}
+  .score-label {{ color: #888; min-width: 50px; }}
+  .score-bar-wrap {{ flex: 1; background: #2a2a45; border-radius: 4px; height: 6px; }}
+  .score-bar {{ height: 100%; border-radius: 4px; transition: width 0.5s; }}
+  .score-bar.fun {{ background: linear-gradient(90deg, #ff6b6b, #f5a623); }}
+  .score-bar.util {{ background: linear-gradient(90deg, #4ade80, #34d399); }}
+  .score-num {{ min-width: 36px; text-align: right; color: #ccc; }}
+
+  .total-score {{
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 10px; padding: 4px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+  }}
+  .total-score.excellent {{ background: rgba(245,166,35,0.15); color: #f5a623; border: 1px solid rgba(245,166,35,0.3); }}
+  .total-score.good {{ background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }}
+  .total-score.normal {{ background: rgba(100,100,130,0.1); color: #777; border: 1px solid rgba(100,100,130,0.2); }}
+
+  .footer {{ text-align: center; padding: 24px; font-size: 12px; color: #555; }}
+
+  h2 {{ color: #667eea; font-size: 1.4em; margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }}
+  table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+  th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #333; }}
+  th {{ background: linear-gradient(135deg, #667eea, #764ba2); color: white; }}
+  tr:hover {{ background-color: #1a1a2e; }}
+  code {{ background: #1e1e38; padding: 2px 8px; border-radius: 4px; font-family: Monaco, monospace; }}
+  pre {{ background: #1e1e38; padding: 15px; border-radius: 8px; overflow-x: auto; }}
+  ul, li {{ color: #c0c0d0; }}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🔥 热搜产品创意分析报告</h1>
-            <p class="meta">生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
-        </header>
-        <div class="content">
-            {html_body}
-        </div>
-    </div>
+<div class="container">
+  <div class="header">
+    <h1>🔥 热搜产品创意分析报告</h1>
+    <div class="meta">微博热搜 · {datetime.now().strftime('%Y年%m月%d日')} · 心理健康 × 个人成长</div>
+  </div>
+  <div class="content">
+    {html_body}
+  </div>
+  <div class="footer">
+    报告生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M')} · 数据来源：微博热搜API · 筛选标准：心理健康/个人成长/情绪管理相关
+  </div>
+</div>
 </body>
 </html>"""
             with open(output_file, "w", encoding="utf-8") as f:
