@@ -87,6 +87,76 @@ def build_prompt():
 """
 
 
+def post_process_html(html_body):
+    """给事件概要和产品创意区块添加样式类"""
+    lines = html_body.split('\n')
+    result = []
+    in_event_summary = False
+    in_product_ideas = False
+    event_summary_content = []
+    product_ideas_content = []
+
+    for line in lines:
+        stripped = line.strip()
+
+        # 检测事件概要开始
+        if '**事件概要**' in stripped or '事件概要' in stripped and '**' in stripped:
+            in_event_summary = True
+            in_product_ideas = False
+            result.append('<div class="event-summary">')
+            # 移除标题行，保留后续内容
+            continue
+
+        # 检测产品创意开始
+        if '**产品创意**' in stripped or '产品创意' in stripped and '**' in stripped:
+            in_event_summary = False
+            in_product_ideas = True
+            result.append('</div>')  # 关闭 event-summary
+            result.append('<div class="ideas-section">')
+            # 移除标题行，保留后续内容
+            continue
+
+        # 检测话题标题（### 话题 N：）
+        if stripped.startswith('<h3>') or stripped.startswith('<h2>'):
+            # 关闭之前打开的 div
+            if in_event_summary:
+                result.append('</div>')
+                in_event_summary = False
+            if in_product_ideas:
+                result.append('</div>')
+                in_product_ideas = False
+
+        # 检测分隔线
+        if stripped.startswith('<hr'):
+            if in_event_summary:
+                result.append('</div>')
+                in_event_summary = False
+            if in_product_ideas:
+                result.append('</div>')
+                in_product_ideas = False
+            result.append(line)
+            continue
+
+        # 检测新的标题或段落（不是列表项）
+        if (stripped.startswith('<h') or stripped.startswith('<p>')) and not in_event_summary and not in_product_ideas:
+            if in_event_summary:
+                result.append('</div>')
+                in_event_summary = False
+            if in_product_ideas:
+                result.append('</div>')
+                in_product_ideas = False
+
+        result.append(line)
+
+    # 关闭最后打开的 div
+    if in_event_summary:
+        result.append('</div>')
+    if in_product_ideas:
+        result.append('</div>')
+
+    return '\n'.join(result)
+
+
 def main():
     if not MINIMAX_API_KEY:
         raise ValueError("MINIMAX_API_KEY environment variable is not set. Please configure it in GitHub Secrets.")
@@ -134,10 +204,14 @@ def main():
         else:
             # 将 Markdown 转换为 HTML
             import markdown
+            import re
             html_body = markdown.markdown(
                 response_text,
                 extensions=['tables', 'fenced_code']
             )
+
+            # 后处理HTML，给事件概要和产品创意添加样式类
+            html_body = post_process_html(html_body)
 
             html_content = f"""<!DOCTYPE html>
 <html lang="zh-CN">
