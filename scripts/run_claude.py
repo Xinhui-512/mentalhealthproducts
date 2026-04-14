@@ -204,18 +204,22 @@ def main():
   .item-body.show {{ display: block; }}
 
   .event-summary {{
-    background: #16162a; border-radius: 8px; padding: 14px 16px;
-    font-size: 14px; color: #c0c0d0; line-height: 1.7; margin-bottom: 16px;
-    border-left: 3px solid #f5a623;
+    background: #1a2535; border-radius: 8px; padding: 14px 16px;
+    font-size: 14px; color: #b8c5d6; line-height: 1.7; margin-bottom: 16px;
+    border-left: 3px solid #4a9eff;
   }}
 
+  .ideas-section {{
+    background: #1a1a30; border-radius: 10px; padding: 16px;
+    margin-top: 12px;
+  }}
   .ideas-section h3 {{
-    font-size: 13px; color: #888; text-transform: uppercase;
+    font-size: 13px; color: #f5a623; text-transform: uppercase;
     letter-spacing: 1px; margin-bottom: 12px;
   }}
   .idea-card {{
-    background: #1e1e38; border-radius: 10px; padding: 14px 16px;
-    margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.04);
+    background: #252545; border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.06);
   }}
   .idea-name {{ font-size: 15px; font-weight: 600; color: #e0e0f0; margin-bottom: 6px; }}
   .idea-funcs {{ font-size: 13px; color: #aaa; margin-bottom: 10px; }}
