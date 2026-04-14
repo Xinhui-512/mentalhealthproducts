@@ -172,16 +172,32 @@ def main():
 
     print(f"Starting AI analysis... Output: {output_file}")
 
-    try:
-        message = client.messages.create(
-            model="MiniMax-M2.7",
-            max_tokens=16384,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+    # 重试机制处理 API 过载
+    max_retries = 3
+    retry_delay = 30  # 秒
+    message = None
 
-        # 解析响应并保存HTML报告
+    for attempt in range(max_retries):
+        try:
+            message = client.messages.create(
+                model="MiniMax-M2.7",
+                max_tokens=16384,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            break  # 成功则跳出重试循环
+        except Exception as e:
+            if attempt < max_retries - 1 and "overloaded" in str(e).lower():
+                print(f"API overloaded, retrying in {retry_delay} seconds... (attempt {attempt + 1}/{max_retries})")
+                import time
+                time.sleep(retry_delay)
+                retry_delay *= 2  # 指数退避
+            else:
+                raise
+
+    # 解析响应并保存HTML报告
+    try:
         # 处理可能的 ThinkingBlock
         response_text = None
         for block in message.content:
@@ -359,6 +375,25 @@ def main():
             print(f"Report saved to {output_file}")
 
         print("Analysis completed successfully!")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        # 创建错误报告
+        error_html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>错误报告</title>
+</head>
+<body>
+    <h1>生成失败</h1>
+    <p>错误信息: {str(e)}</p>
+    <p>时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+</body>
+</html>"""
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(error_html)
+        raise
 
     except Exception as e:
         print(f"Error: {e}")
